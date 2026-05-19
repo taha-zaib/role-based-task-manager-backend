@@ -13,6 +13,8 @@ const authRoutes = require('./routes/authRoutes')
 app.use('/api/auth', authRoutes)
 const userRoutes = require('./routes/userRoutes')
 app.use('/api/users', userRoutes)
+const taskRoutes = require('./routes/taskRoutes')
+app.use('/api/tasks', taskRoutes)
 
 
 const PORT = process.env.PORT || 5000;
