@@ -9,7 +9,11 @@ connectDB();
 const app = express();
 
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: [
+        'http://localhost:5173',
+        "https://role-based-task-manager-frontend.vercel.app"
+    ],
+    credentials: true
 }));
 
 app.use(express.json());
