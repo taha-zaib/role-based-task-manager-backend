@@ -1,5 +1,6 @@
 const Users = require("../models/User")
 const Task = require("../models/Task")
+const User = require("../models/User")
 
 const getAllUsers = async (req, res) => {
     try {
@@ -46,6 +47,32 @@ const promoteUser = async (req, res) => {
     }
 }
 
+const deleteAnyUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+
+        if(!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!"
+            })
+        }
+
+        await user.deleteOne()
+
+        res.status(200).json({
+            success: true,
+            message: `${user.email} deleted Successfully!`
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
 const deleteAnyUserTasks = async (req, res) => {
     try {
         const task = await Task.findById(req.params.id)
@@ -75,5 +102,6 @@ const deleteAnyUserTasks = async (req, res) => {
 module.exports = {
     getAllUsers,
     promoteUser,
+    deleteAnyUser,
     deleteAnyUserTasks
 }
