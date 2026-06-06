@@ -1,13 +1,26 @@
-const Users = require("../models/User")
 const Task = require("../models/Task")
 const User = require("../models/User")
 
 const getAllUsers = async (req, res) => {
     try {
         
-        const users = await Users.find().select('-password')
+        const users = await User.find().select('-password')
 
         res.status(200).json(users)
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
+
+const getUserData = async (req, res) => {
+    try {
+        
+        const user = await User.findById(req.params.id).select('-password')
+
+        res.status(200).json(user)
 
     } catch (error) {
         res.status(500).json({
@@ -19,7 +32,7 @@ const getAllUsers = async (req, res) => {
 const promoteUser = async (req, res) => {
     try {
         
-        const user = await Users.findById(req.params.id)
+        const user = await User.findById(req.params.id)
 
         if(!user) {
             return res.status(404).json({
@@ -101,6 +114,7 @@ const deleteAnyUserTasks = async (req, res) => {
 
 module.exports = {
     getAllUsers,
+    getUserData,
     promoteUser,
     deleteAnyUser,
     deleteAnyUserTasks
