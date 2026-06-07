@@ -1,13 +1,14 @@
 const Task = require("../models/Task")
 const User = require("../models/User")
 
+
 const getAllUsers = async (req, res) => {
     try {
         
         const users = await User.find().select('-password')
 
         res.status(200).json(users)
-
+        
     } catch (error) {
         res.status(500).json({
             message: error.message
@@ -18,10 +19,27 @@ const getAllUsers = async (req, res) => {
 const getUserData = async (req, res) => {
     try {
         
-        const user = await User.findById(req.params.id).select('-password')
+        const data = await User.findById(req.params.id).select('-password')
+        
+        res.status(200).json(data)
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
 
-        res.status(200).json(user)
+const getTasksByUserId = async (req, res) => {
+    try {
+        const userId = req.params.id;
 
+        const tasks = await Task.find({ createdBy: userId })
+
+        res.status(200).json({
+            success: true,
+            tasks
+        })
     } catch (error) {
         res.status(500).json({
             message: error.message
@@ -115,6 +133,7 @@ const deleteAnyUserTasks = async (req, res) => {
 module.exports = {
     getAllUsers,
     getUserData,
+    getTasksByUserId,
     promoteUser,
     deleteAnyUser,
     deleteAnyUserTasks

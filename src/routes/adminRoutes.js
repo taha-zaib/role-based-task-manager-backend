@@ -4,10 +4,12 @@ const router = express.Router()
 const verifyToken = require('../middleware/authMiddleware')
 const authorizeRoles = require('../middleware/roleMiddleware')
 
-const { getAllUsers, promoteUser, deleteAnyUser, deleteAnyUserTasks, getUserData } = require('../controllers/adminController')
+const { getAllUsers, promoteUser, deleteAnyUser, deleteAnyUserTasks, getUserData, getTasksByUserId } = require('../controllers/adminController')
+
 
 router.get('/users', verifyToken, authorizeRoles('admin'), getAllUsers)
 router.get('/users/:id', verifyToken, authorizeRoles('admin'), getUserData)
+router.get('/users/:id/tasks', verifyToken, authorizeRoles('admin'), getTasksByUserId)
 
 router.patch('/users/:id/promote', verifyToken, authorizeRoles('admin'), promoteUser)
 
