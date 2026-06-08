@@ -1,4 +1,4 @@
-const User = require('../models/User')
+const { User, Admin } = require('../models/Users')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -122,7 +122,28 @@ const loginUser = async (req, res) => {
     }
 }
 
+const registerAdmin = async (req, res) => {
+    const { adminName, adminEmail, password, departmentName, departmentEmail, departmentCode } = req.body;
+
+    if(!password) {
+        return res.status(404).json({
+            success: false,
+            message: 'Password not found!'
+        })
+    }
+
+    const existingDepartment = await Admin.findOne({ departmentEmail })
+    if(existingDepartment) {
+        return res.status(400).json({
+            success: false,
+            message: "Department already registered!"
+        })
+    }
+
+}
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    registerAdmin
 };

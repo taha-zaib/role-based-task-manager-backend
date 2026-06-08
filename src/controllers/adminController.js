@@ -1,5 +1,5 @@
 const Task = require("../models/Task")
-const User = require("../models/User")
+const { User, Admin } = require("../models/Users")
 
 
 const getAllUsers = async (req, res) => {
