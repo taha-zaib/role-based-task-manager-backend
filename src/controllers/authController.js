@@ -5,12 +5,19 @@ const jwt = require('jsonwebtoken');
 const registerUser = async (req, res) => {
     try {
         
-        const { name, email, password } = req.body;
+        const { name, email, password, adminCode } = req.body;
 
-        if(!password) {
-            return res.status(404).json({
+        if(!name || !email || !password || !adminCode) {
+            return res.status(400).json({
                 success: false,
-                message: "Password not found!"
+                message: 'All fields are required!'
+            })
+        }
+
+        if(password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be atleast 8 characters long.'
             })
         }
 
@@ -22,12 +29,15 @@ const registerUser = async (req, res) => {
             })
         }
 
-        if(password.length < 8) {
-            return res.status(400).json({
+        // check admin
+        const admin = await Admin.findOne({ adminCode })
+        if (!admin) {
+            return res.status(404).json({
                 success: false,
-                message: 'Password must be atleast 8 characters long.'
+                message: "Invalid Admin Code!"
             })
         }
+
 
         //Hash password
         const salt = await bcrypt.genSalt(10);
@@ -37,7 +47,10 @@ const registerUser = async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+
+            linkedToAdmin: admin._id,
+            approvalStatus: 'pending'
         })
 
         res.status(201).json({
@@ -47,7 +60,10 @@ const registerUser = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+
+                admin: admin.adminUsername,
+                status: user.approvalStatus
             }
         })
 
@@ -123,24 +139,102 @@ const loginUser = async (req, res) => {
 }
 
 const registerAdmin = async (req, res) => {
-    const { adminName, adminEmail, password, departmentName, departmentEmail, departmentCode } = req.body;
+    try {
+        const { adminName, adminEmail, password, adminUsername } = req.body;
 
-    if(!password) {
-        return res.status(404).json({
-            success: false,
-            message: 'Password not found!'
-        })
-    }
+        if(!adminName || !adminEmail || !password || !adminUsername) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields are required!'
+            })
+        }
+        if(password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters long.'
+            });
+        }
 
-    const existingDepartment = await Admin.findOne({ departmentEmail })
-    if(existingDepartment) {
-        return res.status(400).json({
-            success: false,
-            message: "Department already registered!"
+        const existingAdmin = await Admin.findOne({ adminEmail })
+        if(existingAdmin) {
+            return res.status(400).json({
+                success: false,
+                message: {
+                    email: adminEmail,
+                    message: `Already registered!`
+                }
+            })
+        }
+
+        // Hash Password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt)
+
+        // Generate Admin Code
+        const adminCode = await generateAdminCode();
+
+        // Create Admin
+        const admin = await Admin.create({
+            adminName,
+            adminEmail,
+            password: hashedPassword,
+            adminUsername,
+            adminCode,
+            role: 'admin'
         })
+
+        res.status(201).json({
+            success: true,
+            message: "Admin registered successfully!",
+            admin: {
+                id: admin._id,
+                adminName: admin.adminName,
+                adminEmail: admin.adminEmail,
+                adminUsername: admin.adminUsername,
+                adminCode: admin.adminCode,
+                role: admin.role
+            }
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 
 }
+
+// Generate Admin Code
+async function generateAdminCode() {
+    let code;
+    let exists = true;
+    let attempts = 0;
+
+    while (exists && attempts < 5) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        
+        let randomPart = '';
+    
+        for (let i = 0; i < 18; i++) {
+            randomPart += chars.charAt(
+                Math.floor(Math.random() * chars.length)
+            )
+        }
+    
+        code = `${randomPart.slice(0,3)}-` + `${randomPart.slice(3,7)}-` + `${randomPart.slice(7,12)}-` + `${randomPart.slice(12,18)}`
+        
+        exists = await Admin.findOne({ adminCode: code });
+        attempts++;
+    }
+
+    if (attempts === 5) {
+        throw new Error('Failed to generate unique admin code! Try Again..')
+    }
+
+    return code;
+}
+
 
 module.exports = {
     registerUser,

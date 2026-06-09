@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     },
     linkedToAdmin: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'Admin'
     },
     approvalStatus: {
         type: String,
@@ -55,19 +55,15 @@ const adminSchema = new mongoose.Schema({
         type: String,
         default: 'admin'
     },
-    departmentName: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    departmentEmail: {
+    adminUsername: {
         type: String,
         required: true,
         unique: true,
-        lowercase: true
+        match: /^[a-zA-Z0-9_]+$/
     },
-    departmentCode: {
-        type: String
+    adminCode: {
+        type: String,
+        unique: true
     }
 
 }, { timestamps: true });
