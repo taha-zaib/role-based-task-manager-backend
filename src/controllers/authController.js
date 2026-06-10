@@ -55,7 +55,7 @@ const registerUser = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message:'User registered successfully',
+            message:'Registration received, awaiting admin approval.',
             user: {
                 id: user._id,
                 name: user.name,
@@ -117,6 +117,19 @@ const loginUser = async (req, res) => {
                 expiresIn: process.env.JWT_EXPIRES_IN
             }
         )
+
+        if (user.approvalStatus === 'pending') {
+            return res.status(403).json({
+                success: false,
+                message: 'Waiting for admin approval..'
+            })
+        }
+        if (user.approvalStatus === 'rejected') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your registration is rejected!'
+            })
+        }
 
         res.status(200).json({
             success: true,
