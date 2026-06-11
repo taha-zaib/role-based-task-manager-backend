@@ -172,10 +172,7 @@ const registerAdmin = async (req, res) => {
         if(existingAdmin) {
             return res.status(400).json({
                 success: false,
-                message: {
-                    email: adminEmail,
-                    message: `Already registered!`
-                }
+                message: 'Email already registered!',
             })
         }
 
