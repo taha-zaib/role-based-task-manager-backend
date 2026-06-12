@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
             })
         }
 
-        // check admin
+        // check admin with admin code
         const admin = await Admin.findOne({ adminCode })
         if (!admin) {
             return res.status(404).json({
@@ -79,13 +79,25 @@ const loginUser = async (req, res) => {
     try {
 
         const { email, password } = req.body;
+        console.log("REQ BODY:", req.body);
 
         const user = await User.findOne({ email })
-
         if (!user) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid Email"
+            })
+        }
+        if (user.approvalStatus === 'pending') {
+            return res.status(403).json({
+                success: false,
+                message: 'Waiting for admin approval..'
+            })
+        }
+        if (user.approvalStatus === 'rejected') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your registration is rejected!'
             })
         }
 
@@ -117,19 +129,6 @@ const loginUser = async (req, res) => {
                 expiresIn: process.env.JWT_EXPIRES_IN
             }
         )
-
-        if (user.approvalStatus === 'pending') {
-            return res.status(403).json({
-                success: false,
-                message: 'Waiting for admin approval..'
-            })
-        }
-        if (user.approvalStatus === 'rejected') {
-            return res.status(403).json({
-                success: false,
-                message: 'Your registration is rejected!'
-            })
-        }
 
         res.status(200).json({
             success: true,
